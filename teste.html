@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciador de Times</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 18px;
+            color: #6c757d;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab.active {
+            color: #495057;
+            background: white;
+            border-bottom-color: #007bff;
+        }
+
+        .tab:hover:not(.active) {
+            background: #e9ecef;
+            color: #495057;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+            min-height: 600px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Players Tab Styles */
+        .add-player {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .add-player input {
+            flex: 1;
+            min-width: 200px;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .add-player input:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        .btn {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 123, 255, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 8px 12px;
+            font-size: 14px;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
+        }
+
+        .filter-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .filter-section label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            color: #495057;
+            cursor: pointer;
+        }
+
+        .filter-section input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #007bff;
+        }
+
+        .players-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .player-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 20px;
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .player-item:hover {
+            border-color: #007bff;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .player-item input[type="checkbox"] {
+            width: 24px;
+            height: 24px;
+            accent-color: #28a745;
+        }
+
+        .player-name {
+            flex: 1;
+            font-size: 18px;
+            font-weight: 500;
+            color: #495057;
+        }
+
+        /* Teams Tab Styles */
+        .team-config {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .team-config select {
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 16px;
+            background: white;
+        }
+
+        .team-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn-blue {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+        }
+
+        .btn-yellow {
+            background: linear-gradient(135deg, #ffc107, #e0a800);
+            color: #212529;
+        }
+
+        .btn-neutral {
+            background: linear-gradient(135deg, #6c757d, #545b62);
+            color: white;
+        }
+
+        .teams-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .team-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #6c757d;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .team-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .team-card.blue {
+            border-left-color: #007bff;
+        }
+
+        .team-card.yellow {
+            border-left-color: #ffc107;
+        }
+
+        .team-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .team-name {
+            font-size: 24px;
+            font-weight: 700;
+            color: #495057;
+        }
+
+        .team-menu {
+            position: relative;
+        }
+
+        .menu-btn {
+            background: #f8f9fa;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            cursor: pointer;
+            color: #6c757d;
+            transition: all 0.3s ease;
+        }
+
+        .menu-btn:hover {
+            background: #e9ecef;
+            transform: rotate(90deg);
+        }
+
+        .menu-dropdown {
+            display: none;
+            position: absolute;
+            top: 45px;
+            right: 0;
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            min-width: 200px;
+        }
+
+        .menu-dropdown.show {
+            display: block;
+        }
+
+        .menu-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            border-bottom: 1px solid #f8f9fa;
+            transition: background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .menu-item:hover {
+            background: #f8f9fa;
+        }
+
+        .menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .team-players {
+            color: #6c757d;
+            font-size: 16px;
+        }
+
+        .team-player-count {
+            background: #e9ecef;
+            color: #495057;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 2000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                transform: scale(0.9) translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #495057;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #6c757d;
+            transition: color 0.3s ease;
+        }
+
+        .close-btn:hover {
+            color: #dc3545;
+        }
+
+        .available-players {
+            display: grid;
+            gap: 15px;
+        }
+
+        .available-player {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .available-player:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 10px;
+            color: #495057;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            z-index: 3000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background: linear-gradient(135deg, #28a745, #20c997);
+        }
+
+        .notification.error {
+            background: linear-gradient(135deg, #dc3545, #e83e8c);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+
+            .tab-content {
+                padding: 20px;
+            }
+
+            .add-player {
+                flex-direction: column;
+            }
+
+            .add-player input {
+                min-width: auto;
+            }
+
+            .team-controls {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .teams-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                width: 95%;
+                padding: 20px;
+                margin: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Tabs Navigation -->
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('players')">👥 Jogadores</div>
+            <div class="tab" onclick="switchTab('teams')">⚽ Times</div>
+        </div>
+
+        <!-- Players Tab -->
+        <div id="players-tab" class="tab-content active">
+            <div class="add-player">
+                <input type="text" id="player-name" placeholder="Nome do jogador..." maxlength="30">
+                <button class="btn btn-primary" onclick="addPlayer()">Adicionar</button>
+            </div>
+
+            <div class="filter-section">
+                <label>
+                    <input type="checkbox" id="show-only-present" onchange="filterPlayers()">
+                    Mostrar apenas jogadores presentes
+                </label>
+            </div>
+
+            <div id="players-list" class="players-list"></div>
+        </div>
+
+        <!-- Teams Tab -->
+        <div id="teams-tab" class="tab-content">
+            <div class="team-config">
+                <label for="players-per-team"><strong>Jogadores por time:</strong></label>
+                <select id="players-per-team" onchange="updateTeamsConfig()">
+                    <option value="3">3 jogadores</option>
+                    <option value="4">4 jogadores</option>
+                    <option value="5" selected>5 jogadores</option>
+                    <option value="6">6 jogadores</option>
+                    <option value="7">7 jogadores</option>
+                </select>
+                <button class="btn btn-primary" onclick="createTeams()">Criar Times</button>
+            </div>
+
+            <div class="team-controls">
+                <button class="btn btn-blue" onclick="teamLost('blue')">🔵 Azul Perdeu</button>
+                <button class="btn btn-neutral" onclick="showDrawModal()">⚔️ Empate</button>
+                <button class="btn btn-yellow" onclick="teamLost('yellow')">🟡 Amarelo Perdeu</button>
+            </div>
+
+            <div id="teams-grid" class="teams-grid"></div>
+        </div>
+    </div>
+
+    <!-- Add Player Modal -->
+    <div id="add-player-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Adicionar Jogador</h2>
+                <button class="close-btn" onclick="closeModal('add-player-modal')">&times;</button>
+            </div>
+            <div id="available-players-list" class="available-players"></div>
+        </div>
+    </div>
+
+    <!-- Edit Team Modal -->
+    <div id="edit-team-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Editar Time</h2>
+                <button class="close-btn" onclick="closeModal('edit-team-modal')">&times;</button>
+            </div>
+            <div id="edit-team-content"></div>
+        </div>
+    </div>
+
+    <!-- Draw Modal -->
+    <div id="draw-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Empate - Escolha a Ordem dos Times</h2>
+                <button class="close-btn" onclick="closeModal('draw-modal')">&times;</button>
+            </div>
+            <div id="draw-content"></div>
+        </div>
+    </div>
+
+    <script>
+        // Global Variables
+        let players = [];
+        let teams = [];
+        let playersPerTeam = 5;
+        let currentEditingTeam = null;
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+            renderPlayers();
+            renderTeams();
+            
+            // Add enter key support for player input
+            document.getElementById('player-name').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    addPlayer();
+                }
+            });
+        });
+
+        // Data Management
+        function saveData() {
+            try {
+                localStorage.setItem('teamManager_players', JSON.stringify(players));
+                localStorage.setItem('teamManager_teams', JSON.stringify(teams));
+                localStorage.setItem('teamManager_config', JSON.stringify({ playersPerTeam }));
+            } catch (e) {
+                console.error('Error saving data:', e);
+            }
+        }
+
+        function loadData() {
+            try {
+                const savedPlayers = localStorage.getItem('teamManager_players');
+                const savedTeams = localStorage.getItem('teamManager_teams');
+                const savedConfig = localStorage.getItem('teamManager_config');
+
+                if (savedPlayers) {
+                    players = JSON.parse(savedPlayers);
+                }
+                if (savedTeams) {
+                    teams = JSON.parse(savedTeams);
+                }
+                if (savedConfig) {
+                    const config = JSON.parse(savedConfig);
+                    playersPerTeam = config.playersPerTeam || 5;
+                    document.getElementById('players-per-team').value = playersPerTeam;
+                }
+            } catch (e) {
+                console.error('Error loading data:', e);
+                players = [];
+                teams = [];
+            }
+        }
+
+        // Tab Management
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelector(`.tab:nth-child(${tabName === 'players' ? '1' : '2'})`).classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+
+            // Close any open menus
+            closeAllMenus();
+        }
+
+        // Player Management
+        function addPlayer() {
+            const nameInput = document.getElementById('player-name');
+            const name = nameInput.value.trim();
+
+            if (!name) {
+                showNotification('Por favor, digite um nome', 'error');
+                return;
+            }
+
+            // Check if player already exists
+            if (players.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+                showNotification('Jogador já existe', 'error');
+                return;
+            }
+
+            players.push({
+                id: Date.now(),
+                name: name,
+                present: true
+            });
+
+            nameInput.value = '';
+            saveData();
+            renderPlayers();
+            showNotification('Jogador adicionado com sucesso', 'success');
+        }
+
+        function removePlayer(playerId) {
+            if (confirm('Tem certeza que deseja remover este jogador?')) {
+                // Remove player from teams first
+                teams.forEach(team => {
+                    team.players = team.players.filter(p => p.id !== playerId);
+                });
+
+                // Remove player from players list
+                players = players.filter(p => p.id !== playerId);
+
+                saveData();
+                renderPlayers();
+                renderTeams();
+                showNotification('Jogador removido', 'success');
+            }
+        }
+
+        function togglePlayerPresence(playerId) {
+            const player = players.find(p => p.id === playerId);
+            if (player) {
+                player.present = !player.present;
+                
+                // If player is no longer present, remove from all teams
+                if (!player.present) {
+                    teams.forEach(team => {
+                        team.players = team.players.filter(p => p.id !== playerId);
+                    });
+                    renderTeams();
+                }
+                
+                saveData();
+                renderPlayers();
+            }
+        }
+
+        function filterPlayers() {
+            renderPlayers();
+        }
+
+        function renderPlayers() {
+            const playersList = document.getElementById('players-list');
+            const showOnlyPresent = document.getElementById('show-only-present').checked;
+            
+            let filteredPlayers = players;
+            if (showOnlyPresent) {
+                filteredPlayers = players.filter(p => p.present);
+            }
+
+            if (filteredPlayers.length === 0) {
+                playersList.innerHTML = `
+                    <div class="empty-state">
+                        <h3>Nenhum jogador ${showOnlyPresent ? 'presente' : 'cadastrado'}</h3>
+                        <p>Adicione jogadores usando o campo acima</p>
+                    </div>
+                `;
+                return;
+            }
+
+            playersList.innerHTML = filteredPlayers.map(player => `
+                <div class="player-item">
+                    <input type="checkbox" ${player.present ? 'checked' : ''} 
+                           onchange="togglePlayerPresence(${player.id})">
+                    <span class="player-name">${player.name}</span>
+                    <button class="btn btn-danger" onclick="removePlayer(${player.id})">🗑️</button>
+                </div>
+            `).join('');
+        }
+
+        // Team Management
+        function updateTeamsConfig() {
+            playersPerTeam = parseInt(document.getElementById('players-per-team').value);
+            saveData();
+        }
+
+        function createTeams() {
+            const presentPlayers = players.filter(p => p.present);
+            
+            if (presentPlayers.length < playersPerTeam * 2) {
+                showNotification(`Precisa de pelo menos ${playersPerTeam * 2} jogadores presentes`, 'error');
+                return;
+            }
+
+            // Create teams
+            teams = [
+                { id: 1, name: 'Time Azul', type: 'blue', players: [] },
+                { id: 2, name: 'Time Amarelo', type: 'yellow', players: [] }
+            ];
+
+            // Add reserve teams
+            const maxTeams = Math.floor(presentPlayers.length / playersPerTeam);
+            for (let i = 3; i <= maxTeams; i++) {
+                teams.push({ id: i, name: `Time ${i}`, type: 'reserve', players: [] });
+            }
+
+            // Distribute players randomly
+            const shuffledPlayers = [...presentPlayers].sort(() => Math.random() - 0.5);
+            
+            for (let i = 0; i < teams.length; i++) {
+                const startIndex = i * playersPerTeam;
+                const endIndex = Math.min(startIndex + playersPerTeam, shuffledPlayers.length);
+                teams[i].players = shuffledPlayers.slice(startIndex, endIndex);
+            }
+
+            saveData();
+            renderTeams();
+            showNotification('Times criados com sucesso', 'success');
+        }
+
+        function renderTeams() {
+            const teamsGrid = document.getElementById('teams-grid');
+            
+            if (teams.length === 0) {
+                teamsGrid.innerHTML = `
+                    <div class="empty-state">
+                        <h3>Nenhum time criado</h3>
+                        <p>Configure os jogadores por time e clique em "Criar Times"</p>
+                    </div>
+                `;
+                return;
+            }
+
+            teamsGrid.innerHTML = teams.map(team => `
+                <div class="team-card ${team.type}">
+                    <div class="team-header">
+                        <div class="team-name">${team.name}</div>
+                        <div class="team-menu">
+                            <button class="menu-btn" onclick="toggleTeamMenu(${team.id})">⋯</button>
+                            <div id="menu-${team.id}" class="menu-dropdown">
+                                <div class="menu-item" onclick="openAddPlayerModal(${team.id})">
+                                    👥 Adicionar Jogador
+                                </div>
+                                <div class="menu-item" onclick="openEditTeamModal(${team.id})">
+                                    ✏️ Editar Time
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="team-player-count">${team.players.length}/${playersPerTeam} jogadores</div>
+                    <div class="team-players">
+                        ${team.players.length > 0 ? team.players.map(p => p.name).join(', ') : 'Nenhum jogador'}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Team Menu Management
+        function toggleTeamMenu(teamId) {
+            closeAllMenus();
+            const menu = document.getElementById(`menu-${teamId}`);
+            if (menu) {
+                menu.classList.toggle('show');
+            }
+        }
+
+        function closeAllMenus() {
+            document.querySelectorAll('.menu-dropdown').forEach(menu => {
+                menu.classList.remove('show');
+            });
+        }
+
+        // Click outside to close menus
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.team-menu')) {
+                closeAllMenus();
+            }
+        });
+
+        // Modal Management
+        function openAddPlayerModal(teamId) {
+            currentEditingTeam = teamId;
+            const team = teams.find(t => t.id === teamId);
+            const teamPlayerIds = team.players.map(p => p.id);
+            const availablePlayers = players.filter(p => 
+                p.present && 
+                !teams.some(t => t.players.some(tp => tp.id === p.id))
+            );
+
+            const modalContent = document.getElementById('available-players-list');
+            
+            if (availablePlayers.length === 0) {
+                modalContent.innerHTML = `
+                    <div class="empty-state">
+                        <h3>Nenhum jogador disponível</h3>
+                        <p>Todos os jogadores presentes já estão em times</p>
+                    </div>
+                `;
+            } else {
+                modalContent.innerHTML = availablePlayers.map(player => `
+                    <div class="available-player">
+                        <span>${player.name}</span>
+                        <button class="btn btn-primary" onclick="addPlayerToTeam(${player.id})">Adicionar</button>
+                    </div>
+                `).join('');
+            }
+
+            document.getElementById('add-player-modal').classList.add('show');
+            closeAllMenus();
+        }
+
+        function addPlayerToTeam(playerId) {
+            const team = teams.find(t => t.id === currentEditingTeam);
+            const player = players.find(p => p.id === playerId);
+            
+            if (team && player && team.players.length < playersPerTeam) {
+                team.players.push(player);
+                saveData();
+                renderTeams();
+                closeModal('add-player-modal');
+                showNotification(`${player.name} adicionado ao ${team.name}`, 'success');
+            }
+        }
+
+        function openEditTeamModal(teamId) {
+            currentEditingTeam = teamId;
+            const team = teams.find(t => t.id === teamId);
+            const availablePlayers = players.filter(p => 
+                p.present && 
+                !teams.some(t => t.players.some(tp => tp.id === p.id))
+            );
+
+            const modalContent = document.getElementById('edit-team-content');
+            
+            modalContent.innerHTML = `
+                <div style="margin-bottom: 30px;">
+                    <h3>Jogadores Atuais (${team.players.length}/${playersPerTeam})</h3>
+                    <div class="available-players">
+                        ${team.players.length === 0 ? 
+                            '<div class="empty-state"><p>Nenhum jogador no time</p></div>' :
+                            team.players.map(player => `
+                                <div class="available-player">
+                                    <span>${player.name}</span>
+                                    <button class="btn btn-danger" onclick="removePlayerFromTeam(${player.id})">Remover</button>
+                                </div>
+                            `).join('')
+                        }
+                    </div>
+                </div>
+                
+                <div>
+                    <h3>Jogadores Disponíveis</h3>
+                    <div class="available-players">
+                        ${availablePlayers.length === 0 ? 
+                            '<div class="empty-state"><p>Nenhum jogador disponível</p></div>' :
+                            availablePlayers.map(player => `
+                                <div class="available-player">
+                                    <span>${player.name}</span>
+                                    <button class="btn btn-primary" onclick="addPlayerToTeam(${player.id})">Adicionar</button>
+                                </div>
+                            `).join('')
+                        }
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('edit-team-modal').classList.add('show');
+            closeAllMenus();
+        }
+
+        function removePlayerFromTeam(playerId) {
+            const team = teams.find(t => t.id === currentEditingTeam);
+            if (team) {
+                const player = team.players.find(p => p.id === playerId);
+                team.players = team.players.filter(p => p.id !== playerId);
+                saveData();
+                renderTeams();
+                openEditTeamModal(currentEditingTeam); // Refresh modal
+                showNotification(`${player.name} removido do time`, 'success');
+            }
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+        }
+
+        // Team Game Logic
+        function teamLost(teamType) {
+            const losingTeam = teams.find(t => t.type === teamType);
+            const reserveTeams = teams.filter(t => t.type === 'reserve');
+            
+            if (!losingTeam || reserveTeams.length === 0) {
+                showNotification('Não há times reservas disponíveis', 'error');
+                return;
+            }
+
+            // Find the oldest reserve team (lowest ID)
+            const oldestReserve = reserveTeams.reduce((oldest, current) => 
+                current.id < oldest.id ? current : oldest
+            );
+
+            // Store losing team players
+            const losingPlayers = [...losingTeam.players];
+
+            // Replace losing team with reserve team
+            losingTeam.players = [...oldestReserve.players];
+            
+            // If reserve team is incomplete, fill with players from losing team
+            const needed = playersPerTeam - oldestReserve.players.length;
+            if (needed > 0 && losingPlayers.length > 0) {
+                const playersToAdd = losingPlayers.slice(0, needed);
+                losingTeam.players.push(...playersToAdd);
+                
+                // Remove used players from losing players array
+                losingPlayers.splice(0, needed);
+            }
+
+            // Move remaining losing players to the reserve team
+            oldestReserve.players = losingPlayers;
+
+            saveData();
+            renderTeams();
+            showNotification(`${losingTeam.name} substituído por ${oldestReserve.name}`, 'success');
+        }
+
+        function showDrawModal() {
+            const reserveTeams = teams.filter(t => t.type === 'reserve');
+            
+            if (reserveTeams.length < 2) {
+                showNotification('Precisa de pelo menos 2 times reservas para empate', 'error');
+                return;
+            }
+
+            const modalContent = document.getElementById('draw-content');
+            modalContent.innerHTML = `
+                <div style="margin-bottom: 25px;">
+                    <p><strong>Escolha a ordem dos times que vão entrar:</strong></p>
+                    <p style="color: #6c757d; margin-top: 10px;">
+                        O primeiro time escolhido substituirá o Time Azul, 
+                        o segundo substituirá o Time Amarelo.
+                    </p>
+                </div>
+                
+                <div class="available-players">
+                    ${reserveTeams.map(team => `
+                        <div class="available-player">
+                            <span>${team.name} (${team.players.length} jogadores)</span>
+                            <button class="btn btn-primary" onclick="selectTeamForDraw(${team.id})">
+                                Primeiro
+                            </button>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            document.getElementById('draw-modal').classList.add('show');
+        }
+
+        let drawSelections = [];
+
+        function selectTeamForDraw(teamId) {
+            const team = teams.find(t => t.id === teamId);
+            drawSelections.push(team);
+
+            if (drawSelections.length === 1) {
+                // Update modal to show second selection
+                const modalContent = document.getElementById('draw-content');
+                const remainingReserves = teams.filter(t => 
+                    t.type === 'reserve' && t.id !== teamId
+                );
+
+                modalContent.innerHTML = `
+                    <div style="margin-bottom: 25px;">
+                        <p><strong>Primeiro time selecionado:</strong> ${team.name}</p>
+                        <p><strong>Agora escolha o segundo time:</strong></p>
+                    </div>
+                    
+                    <div class="available-players">
+                        ${remainingReserves.map(team => `
+                            <div class="available-player">
+                                <span>${team.name} (${team.players.length} jogadores)</span>
+                                <button class="btn btn-primary" onclick="selectTeamForDraw(${team.id})">
+                                    Segundo
+                                </button>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else {
+                // Execute the draw substitution
+                executeDraw();
+            }
+        }
+
+        function executeDraw() {
+            const blueTeam = teams.find(t => t.type === 'blue');
+            const yellowTeam = teams.find(t => t.type === 'yellow');
+            const firstReserve = drawSelections[0];
+            const secondReserve = drawSelections[1];
+
+            // Store losing teams players
+            const bluePlayers = [...blueTeam.players];
+            const yellowPlayers = [...yellowTeam.players];
+            const allLosingPlayers = [...bluePlayers, ...yellowPlayers];
+
+            // Replace teams
+            blueTeam.players = [...firstReserve.players];
+            yellowTeam.players = [...secondReserve.players];
+
+            // Complete teams if needed
+            const blueNeeded = playersPerTeam - firstReserve.players.length;
+            const yellowNeeded = playersPerTeam - secondReserve.players.length;
+            
+            let playerIndex = 0;
+            
+            // Fill blue team first
+            if (blueNeeded > 0 && playerIndex < allLosingPlayers.length) {
+                const playersToAdd = allLosingPlayers.slice(playerIndex, playerIndex + blueNeeded);
+                blueTeam.players.push(...playersToAdd);
+                playerIndex += blueNeeded;
+            }
+            
+            // Fill yellow team
+            if (yellowNeeded > 0 && playerIndex < allLosingPlayers.length) {
+                const playersToAdd = allLosingPlayers.slice(playerIndex, playerIndex + yellowNeeded);
+                yellowTeam.players.push(...playersToAdd);
+                playerIndex += yellowNeeded;
+            }
+
+            // Distribute remaining players to reserve teams
+            const remainingPlayers = allLosingPlayers.slice(playerIndex);
+            firstReserve.players = remainingPlayers.slice(0, Math.ceil(remainingPlayers.length / 2));
+            secondReserve.players = remainingPlayers.slice(Math.ceil(remainingPlayers.length / 2));
+
+            // Reset draw selections
+            drawSelections = [];
+
+            saveData();
+            renderTeams();
+            closeModal('draw-modal');
+            showNotification('Times substituídos com sucesso', 'success');
+        }
+
+        // Utility Functions
+        function showNotification(message, type = 'success') {
+            // Remove existing notifications
+            const existingNotifications = document.querySelectorAll('.notification');
+            existingNotifications.forEach(n => n.remove());
+
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            // Show notification
+            setTimeout(() => notification.classList.add('show'), 100);
+
+            // Hide notification after 3 seconds
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Close modals when clicking outside
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('modal')) {
+                e.target.classList.remove('show');
+                drawSelections = []; // Reset draw selections if modal is closed
+            }
+        });
+
+        // Prevent modal content clicks from closing modal
+        document.querySelectorAll('.modal-content').forEach(content => {
+            content.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        });
+
+        // Keyboard support
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                // Close any open modals
+                document.querySelectorAll('.modal.show').forEach(modal => {
+                    modal.classList.remove('show');
+                });
+                
+                // Close any open menus
+                closeAllMenus();
+                
+                // Reset draw selections
+                drawSelections = [];
+            }
+        });
+
+        // Auto-save data every 30 seconds
+        setInterval(saveData, 30000);
+
+        // Warn before leaving if there's unsaved data
+        window.addEventListener('beforeunload', function(e) {
+            if (players.length > 0 || teams.length > 0) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+    </script>
+</body>
+</html>

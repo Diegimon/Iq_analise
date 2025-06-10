@@ -1,0 +1,124 @@
+2025-06-09 10:40:12,300 - INFO - Connecting to 149.154.175.55:443/TcpFull...
+2025-06-09 10:40:12,425 - INFO - Connection to 149.154.175.55:443/TcpFull complete!
+2025-06-09 10:40:13,315 - INFO - Cliente Telegram inicializado com sucesso
+2025-06-09 10:40:15,004 - INFO - Google Sheets inicializado com sucesso
+2025-06-09 10:40:15,004 - INFO - Buscando sinais entre 2025-06-02 00:00:00+00:00 e 2025-06-09 13:40:15.004571+00:00 (7 dias)
+2025-06-09 10:40:15,307 - INFO - Encontrados 1 registros existentes
+2025-06-09 10:40:15,307 - ERROR - Erro ao buscar mensagens: MessageMethods.iter_messages() got an unexpected keyword argument 'min_date'
+2025-06-09 10:40:15,308 - INFO - Total de sinais coletados: 0
+2025-06-09 10:40:15,308 - INFO - Sinais novos: 0, Duplicados ignorados: 0
+2025-06-09 10:40:15,308 - INFO - === RESUMO DO PROCESSAMENTO ===
+2025-06-09 10:40:15,308 - INFO - Período: 2025-06-02T00:00:00+00:00 até 2025-06-09T13:40:15.004571+00:00
+2025-06-09 10:40:15,309 - INFO - Total encontrado: 0
+2025-06-09 10:40:15,309 - INFO - Novos sinais: 0
+2025-06-09 10:40:15,309 - INFO - Duplicados: 0
+2025-06-09 10:40:15,309 - INFO - Salvos com sucesso: False
+2025-06-09 10:40:15,532 - INFO - Disconnecting from 149.154.175.55:443/TcpFull...
+2025-06-09 10:40:15,533 - INFO - Disconnection from 149.154.175.55:443/TcpFull complete!
+2025-06-09 10:40:15,613 - INFO - Cliente Telegram desconectado
+2025-06-09 10:49:25,951 - INFO - Connecting to 149.154.175.55:443/TcpFull...
+2025-06-09 10:49:26,081 - INFO - Connection to 149.154.175.55:443/TcpFull complete!
+2025-06-09 10:49:27,474 - INFO - Cliente Telegram inicializado com sucesso
+2025-06-09 10:49:29,313 - INFO - Google Sheets inicializado com sucesso
+2025-06-09 10:49:29,816 - INFO -    • Mensagens processadas: 0
+2025-06-09 10:49:29,816 - INFO -    • Sinais únicos coletados: 0
+2025-06-09 10:49:29,817 - INFO -    • Mensagens sem sinais/duplicatas: 0
+2025-06-09 10:49:29,821 - INFO - === RESUMO DO PROCESSAMENTO ===
+2025-06-09 10:49:29,822 - INFO - Período: 2025-05-10T00:00:00+00:00 até 2025-06-09T13:49:29.314305+00:00
+2025-06-09 10:49:29,822 - INFO - Total encontrado: 0
+2025-06-09 10:49:29,822 - INFO - Novos sinais: 0
+2025-06-09 10:49:29,822 - INFO - Duplicados da planilha: 0
+2025-06-09 10:49:29,823 - INFO - Salvos com sucesso: True
+2025-06-09 10:49:29,827 - INFO - Disconnecting from 149.154.175.55:443/TcpFull...
+2025-06-09 10:49:29,828 - INFO - Disconnection from 149.154.175.55:443/TcpFull complete!
+2025-06-09 10:49:29,946 - INFO - Cliente Telegram desconectado
+2025-06-09 10:51:00,246 - INFO - Connecting to 149.154.175.55:443/TcpFull...
+2025-06-09 10:51:00,370 - INFO - Connection to 149.154.175.55:443/TcpFull complete!
+2025-06-09 10:51:01,305 - INFO - Cliente Telegram inicializado com sucesso
+2025-06-09 10:51:02,776 - INFO - Google Sheets inicializado com sucesso
+2025-06-09 10:51:02,990 - INFO -    • Mensagens processadas: 0
+2025-06-09 10:51:02,990 - INFO -    • Sinais únicos coletados: 0
+2025-06-09 10:51:02,990 - INFO -    • Mensagens sem sinais/duplicatas: 0
+2025-06-09 10:51:02,993 - INFO - === RESUMO DO PROCESSAMENTO ===
+2025-06-09 10:51:02,994 - INFO - Período: 2025-05-10T00:00:00+00:00 até 2025-06-09T13:51:02.776530+00:00
+2025-06-09 10:51:02,994 - INFO - Total encontrado: 0
+2025-06-09 10:51:02,994 - INFO - Novos sinais: 0
+2025-06-09 10:51:02,994 - INFO - Duplicados da planilha: 0
+2025-06-09 10:51:02,994 - INFO - Salvos com sucesso: True
+2025-06-09 10:51:02,998 - INFO - Disconnecting from 149.154.175.55:443/TcpFull...
+2025-06-09 10:51:02,999 - INFO - Disconnection from 149.154.175.55:443/TcpFull complete!
+2025-06-09 10:51:03,123 - INFO - Cliente Telegram desconectado
+2025-06-09 11:02:11,004 - INFO - Connecting to 149.154.175.55:443/TcpFull...
+2025-06-09 11:02:11,144 - INFO - Connection to 149.154.175.55:443/TcpFull complete!
+2025-06-09 11:02:12,102 - INFO - Cliente Telegram inicializado com sucesso
+2025-06-09 11:02:14,123 - INFO - Google Sheets inicializado com sucesso
+2025-06-09 11:02:14,267 - INFO -    • Mensagens processadas: 0
+2025-06-09 11:02:14,267 - INFO -    • Sinais únicos coletados: 0
+2025-06-09 11:02:14,267 - INFO -    • Mensagens sem sinais/duplicatas: 0
+2025-06-09 11:02:14,272 - INFO - === RESUMO DO PROCESSAMENTO ===
+2025-06-09 11:02:14,272 - INFO - Período: 2025-05-10T00:00:00+00:00 até 2025-06-09T14:02:14.123810+00:00
+2025-06-09 11:02:14,272 - INFO - Total encontrado: 0
+2025-06-09 11:02:14,272 - INFO - Novos sinais: 0
+2025-06-09 11:02:14,273 - INFO - Duplicados da planilha: 0
+2025-06-09 11:02:14,273 - INFO - Salvos com sucesso: True
+2025-06-09 11:02:14,277 - INFO - Disconnecting from 149.154.175.55:443/TcpFull...
+2025-06-09 11:02:14,278 - INFO - Disconnection from 149.154.175.55:443/TcpFull complete!
+2025-06-09 11:02:14,391 - INFO - Cliente Telegram desconectado
+2025-06-09 11:05:11,087 - INFO - Connecting to 149.154.175.55:443/TcpFull...
+2025-06-09 11:05:11,220 - INFO - Connection to 149.154.175.55:443/TcpFull complete!
+2025-06-09 11:05:12,365 - INFO - Cliente Telegram inicializado com sucesso
+2025-06-09 11:05:14,047 - INFO - Google Sheets inicializado com sucesso
+2025-06-09 11:05:14,080 - INFO -    • Mensagens processadas: 0
+2025-06-09 11:05:14,080 - INFO -    • Sinais únicos coletados: 0
+2025-06-09 11:05:14,080 - INFO -    • Mensagens sem sinais/duplicatas: 0
+2025-06-09 11:05:14,084 - INFO - === RESUMO DO PROCESSAMENTO ===
+2025-06-09 11:05:14,084 - INFO - Período: 2025-05-10T00:00:00+00:00 até 2025-06-09T14:05:14.047483+00:00
+2025-06-09 11:05:14,084 - INFO - Total encontrado: 0
+2025-06-09 11:05:14,085 - INFO - Novos sinais: 0
+2025-06-09 11:05:14,085 - INFO - Duplicados da planilha: 0
+2025-06-09 11:05:14,085 - INFO - Salvos com sucesso: True
+2025-06-09 11:05:14,089 - INFO - Disconnecting from 149.154.175.55:443/TcpFull...
+2025-06-09 11:05:14,090 - INFO - Disconnection from 149.154.175.55:443/TcpFull complete!
+2025-06-09 11:05:14,160 - INFO - Cliente Telegram desconectado
+2025-06-09 11:12:02,064 - INFO - Connecting to 149.154.175.55:443/TcpFull...
+2025-06-09 11:12:02,203 - INFO - Connection to 149.154.175.55:443/TcpFull complete!
+2025-06-09 11:12:03,091 - INFO - Cliente Telegram inicializado com sucesso
+2025-06-09 11:12:05,022 - INFO - Google Sheets inicializado com sucesso
+2025-06-09 11:12:05,022 - INFO - Processando sinais de 10/05/2025 a 09/06/2025
+2025-06-09 11:12:05,022 - INFO - Iniciando coleta de sinais...
+2025-06-09 11:12:05,158 - INFO - Concluído: 0 mensagens processadas, 0 sinais coletados.
+2025-06-09 11:12:05,158 - WARNING - Nenhum sinal encontrado!
+2025-06-09 11:12:05,158 - INFO - Processamento concluído: {}
+2025-06-09 11:12:05,159 - INFO - Disconnecting from 149.154.175.55:443/TcpFull...
+2025-06-09 11:12:05,159 - INFO - Disconnection from 149.154.175.55:443/TcpFull complete!
+2025-06-09 11:12:05,233 - INFO - Cliente Telegram desconectado
+2025-06-09 11:16:19,273 - INFO - Connecting to 149.154.167.51:443/TcpFull...
+2025-06-09 11:16:21,393 - INFO - Connection to 149.154.167.51:443/TcpFull complete!
+2025-06-09 11:17:06,471 - INFO - Phone migrated to 1
+2025-06-09 11:17:06,730 - INFO - Reconnecting to new data center 1
+2025-06-09 11:17:07,060 - INFO - Disconnecting from 149.154.167.51:443/TcpFull...
+2025-06-09 11:17:07,061 - INFO - Disconnection from 149.154.167.51:443/TcpFull complete!
+2025-06-09 11:17:07,061 - INFO - Connecting to 149.154.175.55:443/TcpFull...
+2025-06-09 11:17:08,693 - INFO - Connection to 149.154.175.55:443/TcpFull complete!
+2025-06-09 11:17:18,987 - INFO - Cliente Telegram inicializado com sucesso
+2025-06-09 11:17:20,567 - INFO - Google Sheets inicializado com sucesso
+2025-06-09 11:17:20,567 - INFO - Processando sinais de 10/05/2025 a 09/06/2025
+2025-06-09 11:17:20,568 - INFO - Iniciando coleta de sinais...
+2025-06-09 11:17:20,831 - INFO - Concluído: 0 mensagens processadas, 0 sinais coletados.
+2025-06-09 11:17:20,831 - WARNING - Nenhum sinal encontrado!
+2025-06-09 11:17:20,832 - INFO - Processamento concluído: {}
+2025-06-09 11:17:20,832 - INFO - Disconnecting from 149.154.175.55:443/TcpFull...
+2025-06-09 11:17:20,833 - INFO - Disconnection from 149.154.175.55:443/TcpFull complete!
+2025-06-09 11:17:20,922 - INFO - Cliente Telegram desconectado
+2025-06-09 11:18:34,199 - INFO - Connecting to 149.154.175.55:443/TcpFull...
+2025-06-09 11:18:34,326 - INFO - Connection to 149.154.175.55:443/TcpFull complete!
+2025-06-09 11:18:35,448 - INFO - Cliente Telegram inicializado com sucesso
+2025-06-09 11:18:36,787 - INFO - Google Sheets inicializado com sucesso
+2025-06-09 11:18:36,787 - INFO - Processando sinais de 10/05/2025 a 09/06/2025
+2025-06-09 11:18:36,787 - INFO - Iniciando coleta de sinais...
+2025-06-09 11:18:36,938 - INFO - Concluído: 0 mensagens processadas, 0 sinais coletados.
+2025-06-09 11:18:36,938 - WARNING - Nenhum sinal encontrado!
+2025-06-09 11:18:36,938 - INFO - Processamento concluído: {}
+2025-06-09 11:18:36,939 - INFO - Disconnecting from 149.154.175.55:443/TcpFull...
+2025-06-09 11:18:36,939 - INFO - Disconnection from 149.154.175.55:443/TcpFull complete!
+2025-06-09 11:18:37,081 - INFO - Cliente Telegram desconectado

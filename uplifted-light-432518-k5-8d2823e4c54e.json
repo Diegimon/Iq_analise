@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "uplifted-light-432518-k5",
+  "private_key_id": "8d2823e4c54e7a6db2ce2473c7ac3eb27319a091",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCi4ep2z8mjiXf/\nRJeVjWPgCbeXtt6dQq8ZgVL9ApH2uqUhOT87ZctUli639Bb5TmVcSsEo3VpYj7Wr\nHhygf1WclQMofQyAxQAng42sd/D6ee6yBmEV9yklqpGij4R1yMLUJFDpllc/CEFs\nMM3AN3xaAYnu8U4oDP5uakqzbZ9XDVduy+TAN4fmVHjGNN3p3fZciZbHJsYIAYFE\ncZU+ccxcKsRAS4aAHu3GOZisdGVpj2Qaam078vB/kGmFS3y7CXGhS4B7nyyY11hH\nsAngrUAn77OQA/WEL87mc13siIVIogyXZgGWA7lLwozn6SqNRLBodvctiDyKBDcu\ntSB46OfVAgMBAAECggEAAbDPHncXLHWhk3p6iVCbpAhtyasaAe9egmkDe8FSUwmK\na78cnyj2FJVvfDTSJTnRVwUmnp43kRpCxDkuimLv+E1aqEmt/sssrnxQ1OS00WDB\nH8NtsAzt9ihgVRvgv9k63nlXBqmrE6oqBa23AQMCbSu9awfBrCxAWtSLHHQrlnt2\nd/OOzvbwCKucYrqJpMpvnTcYmJlGS76PH+GwVXXkgy0C19/2h/gGlczWrGl1NJmj\nqNToRslYnPEHFbEN/fUXL/zMAskvV46Rf6eIpNsOnG82LmoepPcKfNnEMvCh+zB+\nz0pWE2Gx/dUXI8En+f8Wz7Wb3XSir5jhPZgNYGXbqQKBgQDb0lbA+mAjBRD4k2Pp\n0Cca6mQZvaozddEVQuZGM2Y0lWKeuSm4O5SYGBgugxCzscOaoGJ9l6Mk1HS0rDSX\njj5j8GhjBcAQeeI5hm92uMIbh545zip54hE+Ijlnj2MJGCCPhH4/I+VVlaJE/CEI\nDL9AN+7DyL3Sg5r2t15NHVrpHQKBgQC9sJTXjp24wuoZzWxtP/nhUPM5maunWzSE\nTUHXyKGqYRG2XVaHEo+VQHVYwZD/gLjHUt4HRx+Rmt97wEsKzbz7CHwAK2DNYGED\nMuRzBWiRe8ljUWat75L2yxfKobPEs0pDGvEHs/gNJQTpzWAuHGRksXSykdszpsxJ\nyk3mGVN0GQKBgQChI/3olSHoSgx4zEMP4UDpYC1lGT4tXw6YUWRQzdj8bw3OYNoO\nbc6t9+uyHO4fbA6ByVSp0IENvJiY4SvkdaeSx2ceP9bdvRtzI/ONyj6ww6ffpBxL\nIMeXDquaGOh2gDNOQcfyLTQumvRLMbBdIEsKnnXvG7bbHRJ6DU2Zpg1AmQKBgD05\nnoEIvi2hc/AKFuIYUS4Bc8/2oqnszUGashLU5iFZHV9wNvp36jIxUO7p40Qkpv9m\n5tUQhsb3ZwTJZy9Agqu/7E4dsiv33LgsmAHsD/lNLA5LesnPVu8jVDWKBb0KZYDN\nVFi5JOoRNcnFCTM45Mp/YHw2ibrdLnjuvD/1krMZAoGBAMchx+BSGS3MbBvx0BTD\nQ8PVvI1l8ko2AqnHv193vun5cwYZgIy7oKqUbEXtzXH6HR02CrTR3qOVPp05NLWX\n8HTGeuaWtrtTCt0ojis7oBAMW2dp0ZmClVyqdCMqbH3Wj1PmlrMBtkwDvqHR3pMZ\nTqqIRpWzlw9jgxKLO1i4U0CA\n-----END PRIVATE KEY-----\n",
+  "client_email": "sinais-bot@uplifted-light-432518-k5.iam.gserviceaccount.com",
+  "client_id": "114206994139440854831",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/sinais-bot%40uplifted-light-432518-k5.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
