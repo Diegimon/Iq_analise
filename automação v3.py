@@ -140,7 +140,7 @@ class TelegramSignalCollector:
         for i in range(0, len(data), self.batch_size):
             batch = data[i:i+self.batch_size]
             await loop.run_in_executor(None, _save, batch)
-            logger.info(f"Salvo batch de {len(batch)} sinais na posição correta.")
+            logger.info(f"Salvo lote de {len(batch)} sinais na posição correta.")
             await asyncio.sleep(0.5)
 
 async def main():
@@ -154,3 +154,5 @@ async def main():
 
 if __name__ == '__main__':
     asyncio.run(main())
+
+

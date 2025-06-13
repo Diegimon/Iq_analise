@@ -1,18 +1,21 @@
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
+from iqoptionapi.stable_api import IQ_Option
+import time
+from pprint import pprint
 
-# Configurações
-CREDENTIALS_FILE = 'uplifted-light-432518-k5-8d2823e4c54e.json'
-SHEET_NAME = 'Trade'
-ABA_DESTINO = 'Auto' 
+email = "diegodestroier@hotmail.com"
+senha = "diego040324"
 
-# Autenticação
-scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-credentials = ServiceAccountCredentials.from_json_keyfile_name(CREDENTIALS_FILE, scope)
-gc = gspread.authorize(credentials)
+I_want_money = IQ_Option(email, senha)
+I_want_money.connect()
+time.sleep(5)
 
-# Abrir aba específica
-aba = gc.open(SHEET_NAME).worksheet(ABA_DESTINO)
+if not I_want_money.check_connect():
+    print("❌ Falha na conexão")
+    exit()
 
-# Escrever uma linha
-aba.append_row(['Horário', 'Ativo', 'Direção', 'Resultado', 'Gale'])
+I_want_money.change_balance("PRACTICE")
+
+abertos = I_want_money.get_all_open_time()
+from pprint import pprint
+pprint(abertos["binary"])  # Testa pares binários
+
