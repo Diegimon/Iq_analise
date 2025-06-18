@@ -17,7 +17,7 @@ CREDENTIALS_FILE = 'uplifted-light-432518-k5-8d2823e4c54e.json'
 SHEET_NAME = 'Trade'
 WORKSHEET_NAME = 'NOTICIAS'
 
-# Lista para armazenar os eventos extraídos
+# Lista para armazenar os eventos extraídos|
 def coletar_eventos():
     eventos = []
     response = requests.get(URL, headers=HEADERS)
