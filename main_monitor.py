@@ -1,77 +1,75 @@
-import os
 import asyncio
-import logging
-from calendário import main as atualizar_calendario
+import schedule
+import os
 from telethon import TelegramClient, events
-from subprocess import run
-from datetime import datetime
-from calendário import main as atualizar_calendario
+from automacao_v3 import executar_automacao, TelegramSignalCollector
+from analisador import analisar_sinal
+from envio_resultado import enviar_telegram
 
-# === CONFIG ===
-API_ID = int(os.getenv("TELEGRAM_API_ID", "29194173"))
-API_HASH = os.getenv("TELEGRAM_API_HASH", "aa6eac958b72727ff8802895a106a74c")
-GRUPO_ID = int(os.getenv("TELEGRAM_GROUP_ID", "-1001673441581"))
-SESSION_NAME = "monitor_runner"
+TELEGRAM_API_ID = int(os.getenv("TELEGRAM_API_ID", "29194173"))
+TELEGRAM_API_HASH = os.getenv("TELEGRAM_API_HASH", "aa6eac958b72727ff8802895a106a74c")
+SESSION_NAME = "monitor_session"
+GROUP_ID = int(os.getenv('TELEGRAM_GROUP_ID', '-1001673441581'))
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler("log_monitor.txt", encoding='utf-8'),
-        logging.StreamHandler()
-    ]
-)
+async def rotina():
+    print("[INFO] Executando rotina de análise e envio...")
+    sinais = analisar_sinal()
+    for sinal in sinais:
+        ativo = sinal["ativo"]
+        horario = sinal["horario"]
+        score = sinal["score"]
+        if score == 1:
+            recomendacao = "✅ RECOMENDADO"
+        elif score > 1:
+            recomendacao = "✅ FORTEMENTE RECOMENDADO"
+        elif score == 0:
+            recomendacao = "🟡 MODERADO"
+        else:
+            recomendacao = "⚠️ NÃO RECOMENDADO"
+        enviar_telegram(ativo, horario, recomendacao, score, ["Auto: critérios aplicados"], [])
 
-client = TelegramClient(SESSION_NAME, API_ID, API_HASH)
-ULTIMO_SINAL = "sinal.txt"
-
-
-def atualizar_calendario_se_necessario():
-    caminho = "ultima_atualizacao_calendario.txt"
-    hoje = datetime.now().strftime("%Y-%m-%d")
-
-    if os.path.exists(caminho):
-        with open(caminho, "r") as f:
-            ultima_data = f.read().strip()
-            if ultima_data == hoje:
-                logging.info("📅 Calendário já foi atualizado hoje.")
-                return
-
-    logging.info("📅 Atualizando calendário de notícias...")
-    atualizar_calendario()
-    with open(caminho, "w") as f:
-        f.write(hoje)
-
-def carregar_ultimo_sinal():
-    if not os.path.exists(ULTIMO_SINAL):
-        return None, None
-    with open(ULTIMO_SINAL, "r") as f:
-        partes = f.read().strip().split("|")
-        return partes[0], partes[1] if len(partes) == 2 else (None, None)
-
-@client.on(events.NewMessage(chats=GRUPO_ID))
-async def nova_mensagem(event):
-
-
-    texto = event.raw_text.strip()
-    if not texto:
-        return
-
-    # Simples checagem: só roda automação se for diferente do último processado
-    ativo_atual, horario_atual = carregar_ultimo_sinal()
-    if ativo_atual and horario_atual:
-        if ativo_atual in texto and horario_atual in texto:
-            logging.info("⚠️ Sinal repetido. Ignorando.")
-            return
-
-    logging.info("🟢 Nova mensagem detectada. Executando automação_v3.py")
-    run(["python", "automação_v3.py"], shell=True)
-
-async def main():
-    atualizar_calendario_se_necessario()
+async def main_loop():
+    client = TelegramClient(SESSION_NAME, TELEGRAM_API_ID, TELEGRAM_API_HASH)
     await client.start()
-    logging.info("🎯 Runner iniciado. Monitorando mensagens no grupo...")
+    print("[INFO] Cliente Telegram iniciado.")
+
+    # Inicia automação com o client centralizado
+    await executar_automacao(client)
+
+    # Opcional: inicia seu coletor com o client se precisar
+    collector = TelegramSignalCollector(signals_to_collect=10, client=client)
+
+    # Escuta mensagens novas
+    @client.on(events.NewMessage(chats=GROUP_ID))
+    async def handler(event):
+        mensagem = event.raw_text
+        if "direção" in mensagem.lower():
+            print(f"[INFO] Mensagem com 'direção' detectada: {mensagem}")
+            sinais = analisar_sinal()
+            for sinal in sinais:
+                ativo = sinal["ativo"]
+                horario = sinal["horario"]
+                score = sinal["score"]
+                if score == 1:
+                    recomendacao = "✅ RECOMENDADO"
+                elif score > 1:
+                    recomendacao = "✅ FORTEMENTE RECOMENDADO"
+                elif score == 0:
+                    recomendacao = "🟡 MODERADO"
+                else:
+                    recomendacao = "⚠️ NÃO RECOMENDADO"
+                enviar_telegram(ativo, horario, recomendacao, score, ["Auto: critérios aplicados"], [])
+        else:
+            print(f"[INFO] Mensagem ignorada: {mensagem}")
+
+    # Rotina periódica
+    schedule.every(1).minutes.do(lambda: asyncio.create_task(rotina()))
+
+    print("[INFO] Monitor iniciado. Rodando verificações a cada 1 minuto.")
     await client.run_until_disconnected()
 
+def start_monitor():
+    asyncio.run(main_loop())
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    start_monitor()

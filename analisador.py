@@ -1,249 +1,185 @@
 import gspread
-from datetime import datetime, timedelta
 from google.oauth2.service_account import Credentials
-import pytz
 
-# === Configuração do Google Sheets ===
 CREDENTIALS_FILE = 'uplifted-light-432518-k5-8d2823e4c54e.json'
 SHEET_NAME = 'Trade'
-TIMEZONE = pytz.timezone('America/Sao_Paulo')
 
-# === Pesos de cada critério ===
-pesos = {
-    "ativo_bom": 1,
-    "ativo_ruim": -1,
-    "horario_ruim": -1,
-    "noticia_proxima": -1,
-    "media_wins_ok": 1
-}
+def coletar_dados():
+    # Conectar ao Google Sheets
+    scope = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive.readonly']
+    creds = Credentials.from_service_account_file(CREDENTIALS_FILE, scopes=scope)
+    gc = gspread.authorize(creds)
 
-print("=== INICIANDO ANÁLISE DE SINAIS ===")
-print(f"Pesos configurados: {pesos}")
-print()
+    # Abrir planilha
+    sheet = gc.open(SHEET_NAME)
+    aba_analise = sheet.worksheet("ANALISES")
+    aba_noticias = sheet.worksheet("NOTICIAS")
 
-# === Abertura da planilha ===
-print("🔗 Conectando com Google Sheets...")
-scope = ['https://www.googleapis.com/auth/spreadsheets',
-         'https://www.googleapis.com/auth/drive.readonly']
-creds = Credentials.from_service_account_file(CREDENTIALS_FILE, scopes=scope)
-gc = gspread.authorize(creds)
-sheet = gc.open(SHEET_NAME)
+    # Coletar melhores ativos
+    melhores = aba_analise.get("J20:J22")
+    melhores_ativos = [linha[0].strip().upper() for linha in melhores if linha and linha[0]]
 
-aba_analise = sheet.worksheet("ANALISES")
-aba_noticias = sheet.worksheet("NOTICIAS")
-print("✅ Conexão estabelecida com sucesso!")
-print()
+    # Coletar piores ativos
+    piores = aba_analise.get("O20:O22")
+    piores_ativos = [linha[0].strip().upper() for linha in piores if linha and linha[0]]
 
-def parse_horario(hora_str):
-    return datetime.strptime(hora_str.strip(), "%H:%M").time()
-
-def parse_percentual(valor):
-    try:
-        return float(valor.replace("%", "").replace(",", ".")) / 100
-    except:
-        return None
-
-def obter_proximas_noticias(horario, limite=2):
-    print(f"📰 Buscando notícias próximas ao horário {horario}...")
-    noticias = aba_noticias.get_all_values()[1:]
-    print(f"   Total de notícias encontradas: {len(noticias)}")
-    
-    hora_base = parse_horario(horario)
-    proximas = []
-
-    for i, linha in enumerate(noticias):
+    # Coletar horários e winrates
+    linhas = aba_analise.get("A2:B26")
+    horarios_info = []
+    for linha in linhas:
+        if len(linha) < 2:
+            continue
+        horario = linha[0].strip()
+        winrate_raw = linha[1].replace("%", "").replace(",", ".").strip()
         try:
-            hora_noticia = parse_horario(linha[0])
-            impacto = int(linha[2]) if linha[2].isdigit() else 0
-            delta = abs(datetime.combine(datetime.today(), hora_base) -
-                        datetime.combine(datetime.today(), hora_noticia))
-            proximas.append((delta.total_seconds(), linha[0], linha[1], impacto))
-            print(f"   Notícia {i+1}: {linha[0]} - {linha[1]} (impacto {impacto}) - {int(delta.total_seconds()//60)}min de distância")
-        except Exception as e:
-            print(f"   ⚠️ Erro ao processar notícia {i+1}: {e}")
+            winrate = float(winrate_raw)
+            horarios_info.append({
+                "horario": horario,
+                "winrate": winrate
+            })
+        except:
+            print(f"❌ Ignorado horário '{horario}': winrate inválido '{linha[1]}'")
             continue
 
-    proximas.sort()
-    print(f"   Selecionando as {limite} notícias mais próximas...")
-    return proximas[:limite]
+    # Coletar notícias
+    noticias_lidas = []
+    noticias = aba_noticias.get_all_values()[1:]  # Ignora cabeçalho
+    for n in noticias:
+        horario = n[0].strip() if len(n) > 0 else ""
+        moeda = n[1].strip() if len(n) > 1 else ""
+        impacto = n[2].strip() if len(n) > 2 else ""
+        noticia = n[3].strip() if len(n) > 3 else ""
+        noticias_lidas.append({
+            "horario": horario,
+            "moeda": moeda,
+            "impacto": impacto,
+            "noticia": noticia
+        })
 
-def avaliar_sinal(ativo, horario):
-    print(f"🔍 AVALIANDO SINAL: {ativo} às {horario}")
-    print("=" * 50)
-    
+    # Printar dados coletados
+    print("✅ MELHORES ATIVOS:")
+    for ativo in melhores_ativos:
+        print(f"- {ativo}")
+
+    print("\n⚠ PIORES ATIVOS:")
+    for ativo in piores_ativos:
+        print(f"- {ativo}")
+
+    print("\n⚠ HORÁRIOS RUINS (winrate < 85%):")
+    for h in horarios_info:
+        if h["winrate"] < 85.0:
+            print(f"- {h['horario']}: {h['winrate']:.2f}%")
+
+    print(f"\n📰 TOTAL DE NOTÍCIAS OBTIDAS: {len(noticias_lidas)}")
+
+    return {
+        "melhores_ativos": melhores_ativos,
+        "piores_ativos": piores_ativos,
+        "horarios_info": horarios_info,
+        "noticias": noticias_lidas
+    }
+from datetime import datetime, timedelta
+
+from datetime import datetime
+
+def analisar_sinal(ativo, horario_str, dados_coletados):
     score = 0
-    criterios_aplicados = []
-    linhas = aba_analise.get_all_values()
-    print(f"   Dados carregados da planilha: {len(linhas)} linhas")
+    ativo = ativo.strip().upper()
+    try:
+        horario_sinal = datetime.strptime(horario_str, "%H:%M:%S")
+    except:
+        print(f"❌ Erro: Horário do sinal inválido '{horario_str}'")
+        return score
 
-    ativo_normalizado = ativo.strip().upper()
-    print(f"   Ativo normalizado: '{ativo_normalizado}'")
-    print()
+    melhores_ativos = dados_coletados["melhores_ativos"]
+    piores_ativos = dados_coletados["piores_ativos"]
+    horarios_info = dados_coletados["horarios_info"]
+    noticias = dados_coletados["noticias"]
 
-    # === Melhores Ativos de J20:L23 ===
-    print("📊 CRITÉRIO 1: ANÁLISE DO ATIVO")
-    print("   Carregando melhores ativos (J20:L23)...")
-    melhores_raw = aba_analise.get("J20:L23")
-    melhores_ativos = set()
-    
-    for i, linha in enumerate(melhores_raw):
-        if len(linha) >= 3:
-            nome = linha[0].strip().upper()
-            winrate = parse_percentual(linha[2])
-            if nome and winrate is not None:
-                melhores_ativos.add(nome)
-                print(f"   Melhor ativo {i+1}: {nome} (winrate: {winrate:.1%})")
+    # Avaliar ativo
+    if ativo in piores_ativos:
+        score -= 1
+        print(f"⚠ Ativo '{ativo}' está entre os piores: -1")
+    elif ativo in melhores_ativos:
+        score += 1
+        print(f"✅ Ativo '{ativo}' está entre os melhores: +1")
 
-    print(f"   Total de melhores ativos: {len(melhores_ativos)}")
-    print(f"   Lista: {list(melhores_ativos)}")
-
-    # === Piores Ativos de O20:Q23 ===
-    print("   Carregando piores ativos (O20:Q23)...")
-    piores_raw = aba_analise.get("O20:Q23")
-    piores_ativos = set()
-    
-    for i, linha in enumerate(piores_raw):
-        if len(linha) >= 3:
-            nome = linha[0].strip().upper()
-            winrate = parse_percentual(linha[2])
-            if nome and winrate is not None:
-                piores_ativos.add(nome)
-                print(f"   Pior ativo {i+1}: {nome} (winrate: {winrate:.1%})")
-
-    print(f"   Total de piores ativos: {len(piores_ativos)}")
-    print(f"   Lista: {list(piores_ativos)}")
-
-    # Avaliação do ativo
-    if ativo_normalizado in melhores_ativos:
-        score += pesos["ativo_bom"]
-        criterios_aplicados.append("ativo: bom")
-        print(f"   ✅ ATIVO CLASSIFICADO COMO BOM! Score += {pesos['ativo_bom']} (Total: {score})")
-    elif ativo_normalizado in piores_ativos:
-        score += pesos["ativo_ruim"]
-        criterios_aplicados.append("ativo: ruim")
-        print(f"   ❌ ATIVO CLASSIFICADO COMO RUIM! Score += {pesos['ativo_ruim']} (Total: {score})")
+    # Avaliar horário ruim
+    piores_horarios = [h["horario"] for h in horarios_info if h["winrate"] < 80.0]
+    if any(horario_sinal.strftime("%H:%M") == h for h in piores_horarios):
+        score -= 1
+        print(f"⚠ Horário '{horario_sinal.strftime('%H:%M')}' está entre os piores: -1")
     else:
-        criterios_aplicados.append("ativo: neutro")
-        print(f"   ⚪ ATIVO NEUTRO (não está nas listas). Score inalterado (Total: {score})")
-    print()
+        if ativo in melhores_ativos:
+            score += 1
+            print(f"✅ Ativo bom e horário não ruim: +1")
 
-    # === Horários Ruins ===
-    print("⏰ CRITÉRIO 2: ANÁLISE DO HORÁRIO")
-    horarios_ruins = []
-    print("   Carregando horários ruins (winrate < 80%)...")
-    
-    for i, l in enumerate(linhas[2:15]):  # linhas 3-16 da planilha
-        if len(l) > 1 and l[0] and l[1]:
-            winrate_hora = parse_percentual(l[1])
-            if winrate_hora is not None:
-                print(f"   Horário {l[0].strip()}: winrate {winrate_hora:.1%}", end="")
-                if winrate_hora < 0.81:
-                    horarios_ruins.append(l[0].strip())
-                    print(" ❌ (RUIM)")
-                else:
-                    print(" ✅ (BOM)")
+    # Avaliar notícias
+    maior_impacto_atingindo = 0
+    noticia_impacto = None
+    noticia_passada = None
+    noticia_futura = None
+    menor_delta_passado = None
+    menor_delta_futuro = None
 
-    print(f"   Total de horários ruins: {len(horarios_ruins)}")
-    print(f"   Lista de horários ruins: {horarios_ruins}")
-
-    if horario.strip() in horarios_ruins:
-        score += pesos["horario_ruim"]
-        criterios_aplicados.append("horário: ruim")
-        print(f"   ❌ HORÁRIO CLASSIFICADO COMO RUIM! Score += {pesos['horario_ruim']} (Total: {score})")
-    else:
-        criterios_aplicados.append("horário: bom")
-        print(f"   ✅ HORÁRIO CLASSIFICADO COMO BOM! Score inalterado (Total: {score})")
-    print()
-
-    # === Notícia próxima com impacto dinâmico ===
-    print("📢 CRITÉRIO 3: ANÁLISE DE NOTÍCIAS PRÓXIMAS")
-    noticias = aba_noticias.get_all_values()[1:]
-    hora_base = parse_horario(horario)
-    print(f"   Horário base: {hora_base}")
-    print("   Verificando notícias com impacto 3 nos próximos 15 minutos...")
-    
-    noticia_encontrada = False
-    for i, linha in enumerate(noticias):
+    for n in noticias:
         try:
-            hora_noticia = parse_horario(linha[0])
-            impacto = int(linha[2]) if linha[2].isdigit() else 0
-            delta = abs(datetime.combine(datetime.today(), hora_base) -
-                        datetime.combine(datetime.today(), hora_noticia))
-            
-            print(f"   Notícia {i+1}: {linha[0]} - {linha[1]} (impacto {impacto}) - {int(delta.total_seconds()//60)}min")
-            
-            if impacto >= 2:
-                print(f"      → Impacto alto detectado! ({impacto})")
-                if delta <= timedelta(minutes=15):
-                    score += pesos["noticia_proxima"]
-                    criterios_aplicados.append("notícia: muito ruim")
-                    print(f"      ❌ NOTÍCIA MUITO PRÓXIMA E DE ALTO IMPACTO! Score += {pesos['noticia_proxima']} (Total: {score})")
-                    noticia_encontrada = True
-                    break
-                else:
-                    print(f"      → Mas está fora da janela de 15 minutos")
+            noticia_hora = datetime.strptime(n["horario"], "%H:%M")
+            impacto = int(n["impacto"])
+            delta_min = (horario_sinal - noticia_hora).total_seconds() / 60
 
+            # Última notícia passada
+            if delta_min >= 0:
+                if menor_delta_passado is None or delta_min < menor_delta_passado:
+                    menor_delta_passado = delta_min
+                    noticia_passada = n
+            # Próxima notícia futura
             else:
-                print(f"      → Impacto baixo ({impacto}), ignorando")
-                
-        except Exception as e:
-            print(f"   ⚠️ Erro ao processar notícia {i+1}: {e}")
+                delta_min = abs(delta_min)
+                if menor_delta_futuro is None or delta_min < menor_delta_futuro:
+                    menor_delta_futuro = delta_min
+                    noticia_futura = n
+
+            delta = abs((horario_sinal - noticia_hora).total_seconds()) / 60
+
+            # Avaliar impacto
+            if impacto == 1 and delta <= 10:
+                if maior_impacto_atingindo < 1:
+                    maior_impacto_atingindo = 1
+                    noticia_impacto = n
+            elif impacto == 2 and delta <= 30:
+                if maior_impacto_atingindo < 2:
+                    maior_impacto_atingindo = 2
+                    noticia_impacto = n
+            elif impacto == 3 and delta <= 60:
+                if maior_impacto_atingindo < 3:
+                    maior_impacto_atingindo = 3
+                    noticia_impacto = n
+        except:
             continue
-    
-    if not noticia_encontrada:
-        criterios_aplicados.append("notícia: ok")
-        print(f"   ✅ NENHUMA NOTÍCIA DE ALTO IMPACTO PRÓXIMA! Score inalterado (Total: {score})")
 
-    if "horário: bom" in criterios_aplicados and "notícia: ok" in criterios_aplicados:
-        score += 1
-        criterios_aplicados.append("bônus: bom horário + notícia")
-        print("Score +1 por bonus: bom horário + sem notícia✅")
-    elif "ativo: bom" in criterios_aplicados and "horário: bom" in criterios_aplicados:
-        score += 1
-        criterios_aplicados.append("bônus: bom horário + ativo")
-        print("Score +1 por bonus: bom horário + ativo✅")
+    # Aplicar penalidade do impacto
+    if maior_impacto_atingindo > 0:
+        score -= 1
+        print(f"⚠ Notícia impacto {maior_impacto_atingindo} próxima: -1")
+        print(f"📰 Impactando: {noticia_impacto['horario']} | {noticia_impacto['moeda']} | Impacto {noticia_impacto['impacto']} | {noticia_impacto['noticia']}")
+
+    # Exibir notícias passada e futura
+    if noticia_passada:
+        print(f"🕒 Última notícia antes ou no sinal: {noticia_passada['horario']} | {noticia_passada['moeda']} | Impacto {noticia_passada['impacto']} | {noticia_passada['noticia']}")
     else:
-        print("Nenhum bonus aplicado!❌")
+        print("🕒 Nenhuma notícia antes ou no sinal.")
 
-    print()
-
-    print("📋 RESUMO DA AVALIAÇÃO:")
-    print(f"   Score final: {score}")
-    print(f"   Critérios aplicados: {criterios_aplicados}")
-    print()
-
-    return score, criterios_aplicados
-
-def recomendar(score):
-    print("🎯 GERANDO RECOMENDAÇÃO:")
-    if score >= 1:
-        recomendacao = "✅ FORTE"
-        print(f"   Score {score} → {recomendacao}")
-    elif score == 0:
-        recomendacao = "🟡 MODERADO" 
-        print(f"   Score {score} → {recomendacao}")
+    if noticia_futura:
+        print(f"🕒 Próxima notícia após o sinal: {noticia_futura['horario']} | {noticia_futura['moeda']} | Impacto {noticia_futura['impacto']} | {noticia_futura['noticia']}")
     else:
-        recomendacao = "⚠️ EVITE"
-        print(f"   Score {score} → {recomendacao}")
-    
-    return recomendacao
+        print("🕒 Nenhuma notícia após o sinal.")
 
-def analisar_sinal(ativo, horario):
-    print()
-    print("🚀 INICIANDO ANÁLISE COMPLETA")
-    print("=" * 60)
-    
-    score, criterios = avaliar_sinal(ativo, horario)
-    recomendacao = recomendar(score)
-    proximas_noticias = obter_proximas_noticias(horario)
-    
-    print()
-    print("📊 RESULTADO FINAL:")
-    print("=" * 30)
-    print(f"Ativo: {ativo}")
-    print(f"Horário: {horario}")
-    print(f"Recomendação: {recomendacao}")
-    print(f"Score: {score}")
-    print()
-    
-    return recomendacao, score, criterios, proximas_noticias
+    print(f"🎯 Score final do sinal '{ativo}' às {horario_sinal.strftime('%H:%M:%S')}: {score}")
+    return score
+
+
+if __name__ == "__main__":
+    dados = coletar_dados()
+    score = analisar_sinal("EURUSD-OTC", "16:00:00", dados)
+
