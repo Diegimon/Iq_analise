@@ -25,7 +25,7 @@ def coletar_eventos():
 
     tabela = soup.find("table", {"id": "economicCalendarData"})
     if not tabela:
-        print("Tabela de eventos não encontrada.")
+        print("[CALENDARIO] Tabela de eventos não encontrada.")
         return eventos
 
     linhas = tabela.find_all("tr", class_=lambda x: x != "thead")
@@ -79,9 +79,9 @@ def main():
     eventos = coletar_eventos()
     if eventos:
         salvar_no_google_sheets(eventos)
-        print(f"{len(eventos)} eventos salvos na planilha '{SHEET_NAME}' na aba '{WORKSHEET_NAME}'.")
+        print(f"[CALENDARIO] {len(eventos)} eventos salvos na planilha '{SHEET_NAME}' na aba '{WORKSHEET_NAME}'.")
     else:
-        print("Nenhum evento encontrado.")
+        print("[CALENDARIO] Nenhum evento encontrado.")
 
 if __name__ == '__main__':
     main()

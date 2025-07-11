@@ -2,14 +2,15 @@ import asyncio
 import logging
 import os
 import re
+import gspread
+import pytz
 from datetime import datetime, timedelta
 from typing import List, Optional, Set, Tuple
 from dataclasses import dataclass
 from pathlib import Path
-import gspread
-import pytz
 from google.oauth2.service_account import Credentials
-
+from envio_resultado import enviar_telegram
+from analisador import coletar_dados, analisar_sinal
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
@@ -82,13 +83,13 @@ class TelegramSignalCollector:
                     gale = 2
                 return Signal(horario=horario.strip(), ativo=ativo.strip().upper(), direcao=direcao.strip().upper(), resultado=resultado.strip().upper(), gale=gale)
         except Exception as e:
-            logger.error(f"Erro ao interpretar sinal: {e}")
+            logger.error(f"[COLETA] Erro ao interpretar sinal: {e}")
             return None
 
 
     async def collect_and_save(self):
         await self.initialize_sheets()
-        logger.info(f"Buscando as últimas {self.total_messages_to_fetch} mensagens...")
+        logger.info(f"[COLETA] Buscando as últimas {self.total_messages_to_fetch} mensagens...")
         signals = []
         seen_signals = set()
         async for message in self.client.iter_messages(self.group_id, limit=self.total_messages_to_fetch):
@@ -110,13 +111,15 @@ class TelegramSignalCollector:
                     if key not in seen_signals:
                         seen_signals.add(key)
                         signals.append(signal)
-        logger.info(f"Total de sinais válidos encontrados (WIN/LOSS): {len(signals)}")
+        logger.info(f"[COLETA] Total de sinais válidos encontrados (WIN/LOSS): {len(signals)}")
         await self.save_signals(signals)
+
         await self.clean_old_records()
 
     async def save_signals(self, signals: List[Signal]):
+
         if not signals:
-            logger.info("Nenhum sinal novo para salvar.")
+            logger.info("[COLETA] Nenhum sinal novo para salvar.")
             return
 
         def _load_existing_with_index():
@@ -125,13 +128,13 @@ class TelegramSignalCollector:
 
         def _update_cell(row_number: int, signal: Signal):
             self.worksheet.update(f"A{row_number}:G{row_number}", [signal.to_list()])
-            logger.info(f"Linha {row_number} atualizada com novo resultado: {signal.resultado}")
+            logger.info(f"[COLETA] Linha {row_number} atualizada com novo resultado: {signal.resultado}")
 
         def _append_batch(batch):
             values = self.worksheet.col_values(1)
             next_row = len(values) + 1
             self.worksheet.update(f"A{next_row}:G{next_row + len(batch) - 1}", batch)
-            logger.info(f"Salvo lote de {len(batch)} novos sinais.")
+            logger.info(f"[COLETA] Salvo lote de {len(batch)} novos sinais.")
 
         loop = asyncio.get_running_loop()
         existing_with_index = await loop.run_in_executor(None, _load_existing_with_index)
@@ -153,9 +156,13 @@ class TelegramSignalCollector:
                 batch = batch_to_append[i:i + self.batch_size]
                 await loop.run_in_executor(None, _append_batch, batch)
                 await asyncio.sleep(0.5)
+        # gravando ultimo sinal no TXT
+        print("[COLETA] Gravando ultimo sinal no TXT")
+        registrar_ultimo_ativo(signal.data, signal.horario, signal.ativo)
+        
 
     async def clean_old_records(self):
-        logger.info("Verificando necessidade de limpeza de registros antigos...")
+        logger.info("[COLETA] Verificando necessidade de limpeza de registros antigos...")
         values = self.worksheet.get_all_values()
         if len(values) > 502:
             header = values[:2]
@@ -164,10 +171,97 @@ class TelegramSignalCollector:
             self.worksheet.clear()
             self.worksheet.update("A1:G2", header)
             self.worksheet.update(f"A3:G{2 + len(rows_to_keep)}", rows_to_keep)
-            logger.info(f"Limpeza realizada. Total mantido (fora cabeçalho): {len(rows_to_keep)}")
+            logger.info(f"[COLETA] Limpeza realizada. Total mantido (fora cabeçalho): {len(rows_to_keep)}")
         else:
-            logger.info("Nenhuma limpeza necessária.")
+            logger.info("[COLETA] Nenhuma limpeza necessária.")
 
+
+def registrar_ultimo_ativo(data, horario, ativo):
+    caminho_arquivo = "ultima_execucao.txt"
+    linha_nova = f"{data} | {horario} | {ativo}"
+
+    try:
+        # Lê o conteúdo atual
+        ultima_linha = ""
+        if os.path.exists(caminho_arquivo):
+            with open(caminho_arquivo, "r", encoding="utf-8") as f:
+                linhas = f.readlines()
+                if linhas:
+                    ultima_linha = linhas[-1].strip()
+
+        # Verifica se o último sinal já foi registrado
+        if ultima_linha == linha_nova:
+            print(f"[COLETA] Último ativo já registrado: {linha_nova}")
+            return
+
+        # Acrescenta nova linha
+        with open(caminho_arquivo, "a", encoding="utf-8") as f:
+            if os.path.getsize(caminho_arquivo) > 0:
+                f.write("\n")  # Garante nova linha se o arquivo já tem conteúdo
+            f.write(linha_nova)
+
+        print(f"[COLETA] Último ativo registrado no arquivo: {linha_nova}")
+
+    except Exception as e:
+        print(f"[COLETA][ERRO] Falha ao registrar último ativo: {e}")
+
+
+
+
+async def enviar_ultimo_sinal_da_planilha():
+    CREDENTIALS_FILE = 'uplifted-light-432518-k5-8d2823e4c54e.json'
+    SHEET_NAME = 'Trade'
+    WORKSHEET_NAME = 'Auto'
+
+    def _carregar_ultimo_sinal():
+        scope = [
+            'https://www.googleapis.com/auth/spreadsheets',
+            'https://www.googleapis.com/auth/drive.readonly'
+        ]
+        credentials = Credentials.from_service_account_file(CREDENTIALS_FILE, scopes=scope)
+        gc = gspread.authorize(credentials)
+        sheet = gc.open(SHEET_NAME)
+        worksheet = sheet.worksheet(WORKSHEET_NAME)
+        linhas = worksheet.get_all_values()
+        # Pega última linha preenchida real
+        for row in reversed(linhas[2:]):
+            if len(row) >= 3 and row[1] and row[2]:
+                return row
+        return None
+
+    loop = asyncio.get_running_loop()
+    linha = await loop.run_in_executor(None, _carregar_ultimo_sinal)
+
+    if not linha:
+        print("[COLETA][WARN] Não foi possível carregar o último sinal válido.")
+        return
+
+    # Extrair ativo e horário
+    horario = linha[1].strip()
+    ativo = linha[2].strip().upper()
+    direcao = linha[3].strip().upper()
+
+    print(f"[COLETA] Último sinal lido:\n Ativo={ativo}, Horário={horario}")
+
+    # Coletar dados e analisar
+    dados = coletar_dados()
+    resultados = analisar_sinal(ativo, horario, dados, direcao=direcao)
+
+
+    for r in resultados:
+        print(f"[COLETA] Enviando sinal para o telegram")
+        
+        enviar_telegram(
+            r["ativo"],
+            r["horario"],
+            r["winrate_horario"],
+            r["direcao"],
+            r["winrate_ativo"],
+            r["recomendacao"],
+            r["score"],
+            r["criterios"],
+            r["noticias_proximas"]
+        )
 
 
 async def executar_automacao(telegram_client):
